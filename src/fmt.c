@@ -1,5 +1,5 @@
 /* GNU fmt -- simple text formatter.
-   Copyright (C) 1994-2019 Free Software Foundation, Inc.
+   Copyright (C) 1994-2017 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>.  */
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 /* Written by Ross Paterson <rap@doc.ic.ac.uk>.  */
 
@@ -320,7 +320,7 @@ main (int argc, char **argv)
   bool ok = true;
   char const *max_width_option = NULL;
   char const *goal_width_option = NULL;
-
+  struct stat fileinfo;
   initialize_main (&argc, &argv);
   set_program_name (argv[0]);
   setlocale (LC_ALL, "");
@@ -423,27 +423,41 @@ main (int argc, char **argv)
             fmt (stdin);
           else
             {
-              FILE *in_stream;
-              in_stream = fopen (file, "r");
-              if (in_stream != NULL)
-                {
-                  fmt (in_stream);
-                  if (fclose (in_stream) == EOF)
-                    {
-                      error (0, errno, "%s", quotef (file));
-                      ok = false;
+	      if (stat(file, &fileinfo) == 0)
+		{
+		  if (S_ISBLK(fileinfo.st_mode) || S_ISCHR(fileinfo.st_mode) || S_ISFIFO(fileinfo.st_mode))
+		    {
+		      error (0, errno, _("unsupported filetype detected for %s"), quoteaf (file));
+		      ok = false;
+	            }
+		  else
+		    {				
+              	      FILE *in_stream;
+              	      in_stream = fopen (file, "r");
+                      if (in_stream != NULL)
+                        {
+                          fmt (in_stream);
+                          if (fclose (in_stream) == EOF)
+                            {
+                              error (0, errno, "%s", quotef (file));
+                              ok = false;
+                            }
+                        }
+                      else
+                        {
+                          error (0, errno, _("cannot open %s for reading"), quoteaf (file));
+                          ok = false;
+                        }
                     }
-                }
-              else
-                {
-                  error (0, errno, _("cannot open %s for reading"),
-                         quoteaf (file));
-                  ok = false;
-                }
+        	}
+               else
+		{
+ 	          error (0, errno, _("error applying stat on file %s"), quoteaf (file));
+                  ok = false;  	
+		}	
             }
         }
-    }
-
+    }	
   return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
