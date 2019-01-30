@@ -35,7 +35,7 @@ my @Tests =
      ['bad-suffix', '-72x',	{IN=> ''},
       {ERR => "fmt: invalid width: '72x'\n"}, {EXIT => 1}],
      ['no-file', 'no-such-file',
-      {ERR => "fmt: cannot open 'no-such-file' for reading:"
+      {ERR => "fmt: error applying stat on file 'no-such-file':"
        . " No such file or directory\n"}, {EXIT => 1}],
      ['obs-1', '-c -72',
       {ERR => "fmt: invalid option -- 7; -WIDTH is recognized only when it"
